@@ -395,11 +395,45 @@
         }
 
         function processCSV(csvText) {
-            const lines = csvText.split('\n');
-            if (lines.length < 2) return;
+            // Robust CSV Parser (handles quoted newlines)
+            const rows = [];
+            let currentRow = [];
+            let currentField = '';
+            let inQuotes = false;
 
-            // Simple CSV split with regex to handle quoted commas
-            const headers = lines[0].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(h => h.trim().replace(/^"|"$/g, ''));
+            for (let i = 0; i < csvText.length; i++) {
+                const char = csvText[i];
+                const nextChar = csvText[i + 1];
+
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') {
+                        currentField += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    currentRow.push(currentField.trim());
+                    currentField = '';
+                } else if ((char === '\r' || char === '\n') && !inQuotes) {
+                    if (char === '\r' && nextChar === '\n') i++;
+                    currentRow.push(currentField.trim());
+                    if (currentRow.length > 0 && (currentRow.length > 1 || currentRow[0] !== '')) rows.push(currentRow);
+                    currentRow = [];
+                    currentField = '';
+                    inQuotes = false;
+                } else {
+                    currentField += char;
+                }
+            }
+            if (currentField || currentRow.length > 0) {
+                currentRow.push(currentField.trim());
+                rows.push(currentRow);
+            }
+
+            if (rows.length < 2) return;
+
+            const headers = rows[0].map(h => h.trim());
 
             // Helper to get column index
             const getColIndex = (name) => headers.findIndex(h => h.toLowerCase() === name.toLowerCase() || h.toLowerCase().includes(name.toLowerCase()));
@@ -428,19 +462,15 @@
 
             const staffMap = {};
 
-            for (let i = 1; i < lines.length; i++) {
-                if (!lines[i].trim()) continue;
-
-                const row = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
-
-                // Safety check
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
                 if (row.length <= 10) continue;
 
                 const dateStr = row[IDX_DATE] || "";
-                const team = row[IDX_TEAM] || "Unknown";
-                const staff = row[IDX_STAFF] || "Unknown";
-                const status = (row[IDX_STATUS] || "").toLowerCase();
-                const pos = row[IDX_POS] || "Unknown";
+                const team = (row[IDX_TEAM] || "Unknown").trim();
+                const staff = (row[IDX_STAFF] || "Unknown").trim();
+                const status = (row[IDX_STATUS] || "").toLowerCase().trim();
+                const pos = (row[IDX_POS] || "Unknown").trim();
 
                 if (!dateStr || dateStr.toLowerCase() === 'date') continue;
 
