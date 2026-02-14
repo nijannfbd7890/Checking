@@ -1,0 +1,698 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Visit Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --accent: #f43f5e;
+            --background: #0f172a;
+            --surface: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.15) 0px, transparent 50%);
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header-title h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-title p {
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Slicers Section */
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        select,
+        input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--glass-border);
+            color: var(--text);
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.9rem;
+        }
+
+        select:hover,
+        input:hover {
+            background: rgba(15, 23, 42, 0.8);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        select:focus,
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            color: var(--text);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+        }
+
+        .stat-card.success .stat-value {
+            color: #10b981;
+        }
+
+        .stat-card.failed .stat-value {
+            color: #f43f5e;
+        }
+
+        .stat-card.total .stat-value {
+            color: var(--primary);
+        }
+
+        /* Charts Layout */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        /* Table Section */
+        .table-container {
+            background: var(--surface);
+            border-radius: 1.5rem;
+            border: 1px solid var(--glass-border);
+            overflow-x: auto;
+            margin-bottom: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            font-size: 0.9rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .badge-fail {
+            background: rgba(244, 63, 94, 0.1);
+            color: #f43f5e;
+        }
+
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header-title h1 {
+                font-size: 1.75rem;
+            }
+
+            .controls {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            th,
+            td {
+                padding: 0.75rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="header-title">
+                <h1>Site Visit Dashboard</h1>
+                <p id="dashboard-subtitle">Real-time performance metrics tracking</p>
+            </div>
+            <div class="header-actions">
+                <!-- Additional controls could go here -->
+            </div>
+        </header>
+
+        <section class="controls">
+            <div class="control-group">
+                <label for="team-filter">Team Name</label>
+                <select id="team-filter">
+                    <option value="all">All Teams</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="year-filter">Performance Year</label>
+                <select id="year-filter">
+                    <option value="all">All Years</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="pos-filter">Position for TELE MARKETING STAFF NAME</label>
+                <select id="pos-filter">
+                    <option value="all">All Positions</option>
+                </select>
+            </div>
+
+        </section>
+
+        <section class="stats-grid">
+            <div class="stat-card total">
+                <div class="stat-value" id="stat-total-visits">0</div>
+                <div class="stat-label">Total Site Visits</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-value" id="stat-success">0</div>
+                <div class="stat-label">Successful Visits</div>
+            </div>
+            <div class="stat-card failed">
+                <div class="stat-value" id="stat-failed">0</div>
+                <div class="stat-label">Unsuccessful Visits</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-ratio">0%</div>
+                <div class="stat-label">Success Ratio</div>
+            </div>
+        </section>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">Visit Distribution by Team</div>
+                </div>
+                <div id="team-bar-chart"></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">Success vs Failure</div>
+                </div>
+                <div id="status-pie-chart"></div>
+            </div>
+        </div>
+
+        <div class="chart-card" style="margin-bottom: 1.5rem;">
+            <div class="chart-header">
+                <div class="chart-title">Yearly Trend</div>
+            </div>
+            <div id="trend-line-chart"></div>
+        </div>
+
+        <!--
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Team Name</th>
+                        <th>Success</th>
+                        <th>Unsuccess</th>
+                        <th>Total</th>
+                        <th>Ratio</th>
+                    </tr>
+                </thead>
+                <tbody id="data-table-body">
+                    
+                </tbody>
+            </table>
+        </div>
+        -->
+    </div>
+
+    <script>
+        // Data processing will happen here
+        // Data processing will happen here
+        let performanceData = [];
+
+        async function fetchData() {
+            try {
+                const response = await fetch('Data_Raw.csv');
+                const text = await response.text();
+                processCSV(text);
+            } catch (error) {
+                console.error('Error loading CSV:', error);
+            }
+        }
+
+        function processCSV(csvText) {
+            const lines = csvText.split('\n');
+            if (lines.length < 2) return;
+
+            // Simple CSV split with regex to handle quoted commas
+            const headers = lines[0].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(h => h.trim().replace(/^"|"$/g, ''));
+
+            // Helper to get column index
+            const getColIndex = (name) => headers.findIndex(h => h.toLowerCase() === name.toLowerCase() || h.toLowerCase().includes(name.toLowerCase()));
+
+            // Indices based on file inspection:
+            // 4: DATE
+            // 5: TEAM NAME
+            // 6: TELE MARKETING STAFF NAME
+            // 25: Position for   TELE MARKETING STAFF NAME
+            // 37 or similar: Status
+
+            const IDX_DATE = 4;
+            const IDX_TEAM = 5;
+            const IDX_STAFF = 6;
+            const IDX_POS = 25;
+
+            // Find Status column dynamically (it was near end)
+            let IDX_STATUS = getColIndex('Status');
+            if (IDX_STATUS === -1) IDX_STATUS = 37; // Fallback
+
+            const staffMap = {};
+
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+
+                const row = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+
+                // Safety check
+                if (row.length <= 10) continue;
+
+                const dateStr = row[IDX_DATE] || "";
+                const team = row[IDX_TEAM] || "Unknown";
+                const staff = row[IDX_STAFF] || "Unknown";
+                const status = (row[IDX_STATUS] || "").toLowerCase();
+                const pos = row[IDX_POS] || "Unknown";
+
+                if (!dateStr || dateStr.toLowerCase() === 'date') continue;
+
+                // Extract Year
+                // Supports 1/1/2024 and 01-Jan-24
+                let year = "2024";
+                if (dateStr.includes('/')) {
+                    const parts = dateStr.split('/');
+                    if (parts.length === 3) year = parts[2]; // yyyy
+                } else if (dateStr.includes('-')) {
+                    const parts = dateStr.split('-');
+                    if (parts.length === 3) {
+                        let y = parts[2];
+                        if (y.length === 2) y = "20" + y;
+                        year = y;
+                    }
+                }
+                if (year.length === 2) year = "20" + year; // Safety
+
+                const key = staff + "_" + team + "_" + pos;
+
+                if (!staffMap[key]) {
+                    staffMap[key] = {
+                        staff: staff,
+                        team: team,
+                        pos: pos,
+                        v2024: { success: 0, fail: 0 },
+                        v2025: { success: 0, fail: 0 },
+                        v2026: { success: 0, fail: 0 }
+                    };
+                }
+
+                // Success Criteria: 
+                // Based on previous logic, success is "booked" or "blocked". 
+                // Everything else (Site Visit, etc) is "fail" (or just a visit without booking).
+                const isSuccess = status.includes('booked') || status.includes('blocked');
+
+                const targetYear = 'v' + year;
+                if (staffMap[key][targetYear]) {
+                    if (isSuccess) {
+                        staffMap[key][targetYear].success++;
+                    } else {
+                        staffMap[key][targetYear].fail++;
+                    }
+                }
+            }
+
+            performanceData = Object.values(staffMap);
+            // console.log('Processed', performanceData.length);
+
+            populateFilters();
+            updateDashboard();
+        }
+
+
+        // Initialize Charts
+        let teamBarChart, statusPieChart, trendLineChart;
+
+        function initCharts() {
+            const barOptions = {
+                chart: { type: 'bar', height: 350, toolbar: { show: false }, background: 'transparent' },
+                theme: { mode: 'dark' },
+                series: [],
+                xaxis: { categories: [] },
+                colors: ['#10b981', '#f43f5e'],
+                plotOptions: { bar: { borderRadius: 4, columnWidth: '60%' } },
+                dataLabels: { enabled: false },
+                grid: { borderColor: 'rgba(255,255,255,0.05)' }
+            };
+            teamBarChart = new ApexCharts(document.querySelector("#team-bar-chart"), barOptions);
+            teamBarChart.render();
+
+            const pieOptions = {
+                chart: { type: 'donut', height: 350, background: 'transparent' },
+                theme: { mode: 'dark' },
+                series: [0, 0],
+                labels: ['Success', 'Unsuccess'],
+                colors: ['#10b981', '#f43f5e'],
+                legend: { position: 'bottom' },
+                stroke: { show: false },
+                dataLabels: { enabled: true, formatter: val => val.toFixed(1) + "%" }
+            };
+            statusPieChart = new ApexCharts(document.querySelector("#status-pie-chart"), pieOptions);
+            statusPieChart.render();
+
+            const lineOptions = {
+                chart: { type: 'area', height: 350, toolbar: { show: false }, background: 'transparent' },
+                theme: { mode: 'dark' },
+                series: [],
+                xaxis: { categories: ['2024', '2025', '2026'] },
+                colors: ['#6366f1'],
+                stroke: { curve: 'smooth', width: 3 },
+                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05 } },
+                grid: { borderColor: 'rgba(255,255,255,0.05)' }
+            };
+            trendLineChart = new ApexCharts(document.querySelector("#trend-line-chart"), lineOptions);
+            trendLineChart.render();
+        }
+
+        function updateDashboard() {
+            const selectedTeam = document.getElementById('team-filter').value;
+            const selectedYear = document.getElementById('year-filter').value;
+            const selectedPos = document.getElementById('pos-filter').value;
+
+            filteredData = performanceData.filter(item => {
+                const teamMatch = selectedTeam === 'all' || (item.team && item.team.toLowerCase() === selectedTeam.toLowerCase());
+                const posMatch = selectedPos === 'all' || (item.pos && item.pos.toLowerCase() === selectedPos.toLowerCase());
+                return teamMatch && posMatch;
+            });
+
+            // Calculate Stats
+            let totalSuccess = 0;
+            let totalFail = 0;
+            let yearlyTrend = { '2024': 0, '2025': 0, '2026': 0 };
+
+            const teamStats = {};
+
+            filteredData.forEach(item => {
+                let s = 0, f = 0;
+                if (selectedYear === 'all' || selectedYear === '2024') {
+                    s += (item.v2024.success || 0); f += (item.v2024.fail || 0);
+                    yearlyTrend['2024'] += ((item.v2024.success || 0) + (item.v2024.fail || 0));
+                }
+                if (selectedYear === 'all' || selectedYear === '2025') {
+                    s += (item.v2025.success || 0); f += (item.v2025.fail || 0);
+                    yearlyTrend['2025'] += ((item.v2025.success || 0) + (item.v2025.fail || 0));
+                }
+                if (selectedYear === 'all' || selectedYear === '2026') {
+                    s += (item.v2026.success || 0); f += (item.v2026.fail || 0);
+                    yearlyTrend['2026'] += ((item.v2026.success || 0) + (item.v2026.fail || 0));
+                }
+
+                totalSuccess += s;
+                totalFail += f;
+
+                if (!teamStats[item.team]) teamStats[item.team] = { s: 0, f: 0 };
+                teamStats[item.team].s += s;
+                teamStats[item.team].f += f;
+            });
+
+            const totalVisits = totalSuccess + totalFail;
+            document.getElementById('stat-total-visits').innerText = totalVisits.toLocaleString();
+            document.getElementById('stat-success').innerText = totalSuccess.toLocaleString();
+            document.getElementById('stat-failed').innerText = totalFail.toLocaleString();
+            document.getElementById('stat-ratio').innerText = totalVisits > 0 ? ((totalSuccess / totalVisits) * 100).toFixed(1) + '%' : '0%';
+
+            statusPieChart.updateSeries([totalSuccess, totalFail]);
+
+            const teams = Object.keys(teamStats);
+            const teamSuccess = teams.map(t => teamStats[t].s);
+            const teamFail = teams.map(t => teamStats[t].f);
+
+            teamBarChart.updateOptions({
+                xaxis: { categories: teams },
+                series: [
+                    { name: 'Success', data: teamSuccess },
+                    { name: 'Unsuccess', data: teamFail }
+                ]
+            });
+
+            trendLineChart.updateSeries([
+                { name: 'Total Visits', data: [yearlyTrend['2024'], yearlyTrend['2025'], yearlyTrend['2026']] }
+            ]);
+
+            /*
+            const tbody = document.getElementById('data-table-body');
+            tbody.innerHTML = '';
+            filteredData.slice(0, 50).forEach(item => {
+                let s = 0, f = 0;
+                if (selectedYear === 'all' || selectedYear === '2024') { s += (item.v2024.success || 0); f += (item.v2024.fail || 0); }
+                if (selectedYear === 'all' || selectedYear === '2025') { s += (item.v2025.success || 0); f += (item.v2025.fail || 0); }
+                if (selectedYear === 'all' || selectedYear === '2026') { s += (item.v2026.success || 0); f += (item.v2026.fail || 0); }
+
+                const total = s + f;
+                if (total === 0) return;
+
+                const ratio = ((s / total) * 100).toFixed(1) + '%';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.team}</td>
+                    <td><span class="badge badge-success">${s}</span></td>
+                    <td><span class="badge badge-fail">${f}</span></td>
+                    <td>${total}</td>
+                    <td>${ratio}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            */
+        }
+
+        function populateFilters() {
+            // Populate Teams (assuming teams are fine, or should we filter BOD teams too?)
+            // Usually BOD are mixed in teams or have their own team.
+            // Let's just filter positions and staff for now as requested.
+            // Normalize team names to title case or consistent format to remove duplicates
+            const teams = [...new Set(performanceData.map(item => {
+                let t = item.team || "";
+                // Simple normalization: if it contains 'sir' or 'mam' with different casing, standardize it.
+                // Or just use the first occurrence as the canonical version? 
+                // Better: Title Case everything? No, names might be complex.
+                // Let's rely on case-insensitive set behavior by mapping to lower case for uniqueness check, 
+                // but we need a display version.
+                return t;
+            }))].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+            // Deduplicate ignoring case
+            const uniqueTeams = [];
+            const seenTeams = new Set();
+            teams.forEach(t => {
+                if (!seenTeams.has(t.toLowerCase())) {
+                    seenTeams.add(t.toLowerCase());
+                    uniqueTeams.push(t);
+                }
+            });
+
+            const teamFilter = document.getElementById('team-filter');
+            uniqueTeams.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t;
+                opt.innerText = t;
+                teamFilter.appendChild(opt);
+            });
+
+            const positionsRaw = [...new Set(performanceData.map(item => {
+                const p = item.pos || "";
+                // Standardize to Title Case or just maintain consistency
+                if (p.toLowerCase() === "marketing staff") return "Marketing Staff";
+                if (p.toLowerCase() === "telecaller") return "Telecaller";
+                if (p.toLowerCase() === "f.w") return "F.W";
+                return p;
+            }))].filter(p => {
+                if (!p) return false;
+                const up = p.toUpperCase();
+                return up !== 'BOD' && !up.includes('OLD STAFF');
+            }).sort();
+
+            const posFilter = document.getElementById('pos-filter');
+            positionsRaw.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p;
+                opt.innerText = p;
+                posFilter.appendChild(opt);
+            });
+
+        }
+
+        document.getElementById('team-filter').onchange = updateDashboard;
+        document.getElementById('pos-filter').onchange = updateDashboard;
+        document.getElementById('year-filter').onchange = updateDashboard;
+
+        // Startup
+        // Startup
+        window.onload = () => {
+            fetchData();
+            initCharts();
+        };
+    </script>
+</body>
+
+</html>
