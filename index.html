@@ -462,8 +462,8 @@
             });
             if (IDX_POS === -1) IDX_POS = 24; // Fallback to 0-based index 24
 
-            // Find Status column dynamically (it was near end)
-            let IDX_STATUS = getColIndex('Status');
+            // Find Status column - prioritize EXACT match "Status" to avoid "Rough Status" etc.
+            let IDX_STATUS = headers.findIndex(h => h.trim().toLowerCase() === 'status');
             if (IDX_STATUS === -1) IDX_STATUS = 37; // Fallback
 
             const staffMap = {};
