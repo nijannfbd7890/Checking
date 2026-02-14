@@ -510,9 +510,8 @@
                 }
 
                 // Success Criteria: 
-                // Based on previous logic, success is "booked" or "blocked". 
-                // Everything else (Site Visit, etc) is "fail" (or just a visit without booking).
-                const isSuccess = status.includes('booked') || status.includes('blocked') || status === 'success';
+                // Status column contains explicit "Success" or "Un Success"
+                const isSuccess = status === 'success';
 
                 const targetYear = 'v' + year;
                 if (staffMap[key][targetYear]) {
