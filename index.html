@@ -445,9 +445,15 @@
             // 25: Position for   TELE MARKETING STAFF NAME
             // 37 or similar: Status
 
-            const IDX_DATE = 4;
-            const IDX_TEAM = 5;
-            const IDX_STAFF = 6;
+            let IDX_DATE = getColIndex('Date');
+            if (IDX_DATE === -1) IDX_DATE = 4;
+
+            let IDX_TEAM = getColIndex('Team Name');
+            if (IDX_TEAM === -1) IDX_TEAM = 5;
+
+            let IDX_STAFF = getColIndex('Tele Marketing Staff Name'); // More specific search
+            if (IDX_STAFF === -1) IDX_STAFF = getColIndex('Staff Name');
+            if (IDX_STAFF === -1) IDX_STAFF = 6;
 
             // Search for "Position for" + "TELE MARKETING" to find index
             let IDX_POS = headers.findIndex(h => {
