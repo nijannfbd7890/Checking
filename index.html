@@ -414,7 +414,13 @@
             const IDX_DATE = 4;
             const IDX_TEAM = 5;
             const IDX_STAFF = 6;
-            const IDX_POS = 25;
+
+            // Search for "Position for" + "TELE MARKETING" to find index
+            let IDX_POS = headers.findIndex(h => {
+                const normalized = h.toLowerCase().replace(/\s+/g, ' '); // collapse spaces
+                return normalized.includes('position for') && normalized.includes('tele marketing staff name');
+            });
+            if (IDX_POS === -1) IDX_POS = 24; // Fallback to 0-based index 24
 
             // Find Status column dynamically (it was near end)
             let IDX_STATUS = getColIndex('Status');
